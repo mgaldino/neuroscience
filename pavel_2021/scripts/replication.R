@@ -20,45 +20,29 @@ glimpse(rep_data1)
 glimpse(rep_data2)
 glimpse(rep_data3)
 
-# Questão: no estudo 3, democratas tiveram pequena mudança de crença com relação itens republicanos (painel C, p.12)
-# e mudança não significativa no comportamento. O mesmo se repete no estudo 2?
-
-ideology_3 <- rep_data3 %>%
-  dplyr::select(Q5, Q1184, Q21)
-
-#primeiro replicando painel do estudo 3
-rep_data3 %>%
-  slice(-(1:3)) %>% #removendo duas primeiras linhas
-  dplyr::filter(grepl("Yes", Q5)) %>%
-  group_by(Q21) %>%
-  summarise(n())
-
-# Não há 137 republicanos pela pergunta Q21
-rep_data3 %>%
-  slice(-(2:3)) %>% #removendo duas primeiras linhas
-  group_by(Q1184) %>%
-  summarise(n())
-# Não há 137 republicanos pela pergunta Q1184
-
-## aproximando
-rep_data3 %>%
-  slice(-(2:3)) %>% #removendo duas primeiras linhas
-  filter(Q21 != "Other") %>%
-  filter(!is.na(Q21)) %>%
-  group_by(Q21) %>%
-  summarise(n())
+# Não sei como o screening funcionou
+# no estudo 3, ficaram 393 participantes, 256 Democrats and 137 Republicans
+# Então não consigo reproduzir exatamente a amostra do estudo
 
 rep_data3_aprox <- rep_data3 %>%
   slice(-(2:3)) %>% #removendo duas primeiras linhas
   filter(Q21 != "Other") %>%
+  filter(Q21 != "Independent") %>%
   filter(!is.na(Q21))
 
-#escolhendo perguntas relevantes
+# Aqui ficamos com 375, 243 D, 132 R.
+rep_data3_aprox %>%
+  slice(-1) %>%
+  group_by(Q21) %>%
+  summarise(particp=n()) %>%
+  mutate(total = sum(particp))
+
+#escolhendo dados de crenças e doações (pré e pós)
 rep_data3_aux <- rep_data3_aprox %>%
   slice(-1) %>%
-  select( c(9, 20:36, 41:58))
+  select( c(9, 20:36, 41:58)) #colunas relevantes com as perguntas sobre crenças e doações pré e pós
 
-#perguntas de crenças
+#Pegando todas as perguntas de crenças (pré e pós)
 rep_data3_belief <- rep_data3_aux %>%
   select( c(1:9, 19:26)) 
 names(rep_data3_belief)[2:17] <- c(paste(rep("x", 8), 1:8, sep=""),  paste(rep("y", 8), 1:8, sep=""))
@@ -70,7 +54,7 @@ rep_data3_belief_aux <- rep_data3_belief %>%
 
 names(rep_data3_belief_aux)[3:4] <- c("belief_pre", "belief_post")
 
-#perguntas de doações
+#Pegando todas as perguntas de doações (pré e pós)
 rep_data3_behavior <- rep_data3_aux %>%
   select( c(1, 10:17, 28:35)) ## Q1725_32:Q1725_50 Q1169_32:Q1169_50
 
@@ -92,7 +76,7 @@ rep_data3_final <- bind_cols(rep_data3_belief_aux, rep_data3_behavior_aux) %>%
   mutate_at(c("belief_pre", "belief_post",  "behave_pre", "behave_post"), as.numeric)
 
 rep_data3_final <- rep_data3_final %>%
-  mutate(change_belief = belief_post -belief_pre,
+  mutate(change_belief = belief_post - belief_pre,
          change_behavior = behave_post - behave_pre)
 glimpse(rep_data3_final)
 
